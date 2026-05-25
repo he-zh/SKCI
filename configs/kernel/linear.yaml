@@ -1,0 +1,7 @@
+_target_: "models.kernels.LinearModel"
+kernel_type: "linear"
+input_dim: 1
+hidden_dim: 1
+ridge_lambda: 1e-4
+gamma: 1.0
+is_trainable: false

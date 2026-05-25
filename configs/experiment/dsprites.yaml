@@ -1,0 +1,96 @@
+# @package _global_
+# dSprites experiment config with autoencoder for image dimension reduction
+# Uses autoencoder to encode 64x64 images to latent features for kernel_b
+
+defaults:
+  - /data: dsprites
+  - /kernel@model_a: rbf
+  - /kernel@model_b: autoencoder  # Use autoencoder for image features
+  - /kernel@model_c: cnn
+  - /kernel@model_ca: cnn
+  - /kernel@model_cb: cnn
+
+
+
+wandb:
+  disabled: false
+  group: "${train.model_x_mode}_${wandb.task}_b-${data.b_type}_Vt_${train.Vt_type}_ae_bs${data.samples}_T${train.T}"
+  task: "dsprites"
+  tags: []
+
+model_a:
+  input_dim: 1
+  is_trainable: false
+  gamma_init_method: null
+
+model_b:
+  # Autoencoder settings for 64x64 images
+  input_channels: 1
+  input_dim: 64
+  latent_dim: 16
+  hidden_channels: [32, 64, 128]
+  is_trainable: false  # Autoencoder is pretrained, then frozen
+  gamma_init_method: "variance"
+
+
+
+model_c:
+  input_channels: 1
+  input_dim: 28
+  hidden_channels: [32, 64, 128]
+  fc_hidden_size: [128]
+  dropout: 0.
+  is_trainable: true
+  output_dim: 8
+
+model_ca:
+  input_channels: 1
+  input_dim: 28
+  hidden_channels: [32, 64, 128]
+  fc_hidden_size: [128]
+  dropout: 0.
+  is_trainable: true
+  output_dim: 1
+
+model_cb:
+  input_channels: 1
+  input_dim: 28
+  hidden_channels: [32, 64, 128]
+  fc_hidden_size: [128]
+  dropout: 0.
+  is_trainable: true
+  output_dim: 8
+
+
+
+data:
+  data_seed: ${train.seed}
+  samples: 20
+  type: "type1"
+  b_type: "image"  # Use full images (autoencoder will encode them)
+
+
+train:
+  name: "kci"
+  seed: 1
+  lr: 0.01
+  earlystopping:
+    patience: 30
+    delta: 0.0
+  pretrain_samples: 3000
+  # Autoencoder pretraining settings
+  use_autoencoder_for_b: true  
+  autoencoder_lr: 0.001
+  # model_x_mode: 'online' (learn on streaming data), 'pretrained' (pretrain with noisy samples), 'oracle' (pretrain with conditional means)
+  model_x_mode: "online"
+  epochs: 400
+  seqs: 50 # number of mini-batches
+  T: 0 #Warm start number of mini-batches used for the training only
+  alpha: 0.05 # significance level
+  eps: 1e-6
+  betting_fraction_trainable: true
+  batch_size: ${data.samples}
+  l1_lambda: 0.0
+  l2_lambda: 0.0
+  save: false
+  save_dir: ""

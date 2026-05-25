@@ -1,0 +1,15 @@
+# Autoencoder-based kernel model for image data (e.g., dSprites 64x64)
+# Uses a pretrained/jointly-trained autoencoder to extract latent features
+# then applies a kernel on those features
+
+_target_: "models.kernels.AutoencoderModel"
+kernel_type: "rbf"
+input_channels: 1
+input_dim: 64  # 64x64 images for dSprites
+latent_dim: 32  # Dimension of latent space
+hidden_channels: [32, 64, 128]  # Encoder conv layer channels
+ridge_lambda: 1e-4
+gamma: 1.0
+gamma_init_method: "variance"  # Use variance heuristic for RBF bandwidth
+is_trainable: false  # Set to true to train autoencoder jointly
+pretrained_path: null  # Path to pretrained autoencoder weights

@@ -1,0 +1,74 @@
+# @package _global_
+defaults:
+  - /data: gaussiancit
+  - /kernel@model_a: rbf
+  - /kernel@model_b: rbf
+  - /kernel@model_c: mlp
+  - /kernel@model_ca: mlp
+  - /kernel@model_cb: mlp
+
+
+
+wandb:
+  disabled: false
+  group: "${train.model_x_mode}_${wandb.task}_d${data.d}_Vt_${train.Vt_type}_mlp_bs${data.samples}_T${train.T}"
+  task: "gaussian"
+  tags: []
+
+model_a:
+  input_dim: 1
+  is_trainable: false
+  gamma_init_method: null
+
+model_b:
+  input_dim: 1
+  is_trainable: false
+  gamma_init_method: null
+
+model_c:
+  input_dim: ${data.d}
+  is_trainable: true
+  hidden_dim: [128, 64, 32, 8]
+  output_dim: 1
+
+model_ca:
+  input_dim: ${data.d}
+  is_trainable: true
+  hidden_dim: [128, 64, 32, 8]
+  output_dim: 1
+
+model_cb:
+  input_dim: ${data.d}
+  is_trainable: true
+  hidden_dim: [128, 64, 32, 8]
+  output_dim: 1
+
+
+data:
+  data_seed: ${train.seed}
+  samples: 20
+  d: 19
+  type: "type1"
+
+
+train:
+  name: "kci"
+  seed: 1
+  lr: 0.01
+  earlystopping:
+    patience: 30
+    delta: 0.0
+  pretrain_samples: 3000
+  # model_x_mode: 'online' (learn on streaming data), 'pretrained' (pretrain with noisy samples), 'oracle' (pretrain with conditional means)
+  model_x_mode: "online"
+  epochs: 400
+  seqs: 50 # number of mini-batches
+  T: 0 #Warm start number of mini-batches used for the training only
+  alpha: 0.05 # significance level
+  eps: 1e-6
+  betting_fraction_trainable: true
+  batch_size: ${data.samples}
+  l1_lambda: 0.0
+  l2_lambda: 0.0
+  save: false
+  save_dir: ""

@@ -1,0 +1,10 @@
+# RatInABox data configuration  
+# Simulated neural recordings from rat navigation
+# Tests: head_direction_cells (A) ⊥ head+grid_cells (B) | position+head_dir (C)
+
+_target_: data.ratinabox.RatInABoxCITGen
+data_path: "data/ratinabox"  # Path to .npy files
+dim: 100        # Number of cells
+n_cells: 100    # Number of cells in simulation
+noise_std: 0.1  # Noise level used in data generation
+max_n_points: 5000  # Maximum points per data file (for non-replacement sampling)

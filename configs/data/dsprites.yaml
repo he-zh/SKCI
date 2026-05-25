@@ -1,0 +1,8 @@
+# dSprites data configuration
+# Data from: https://github.com/google-deepmind/dsprites-dataset?tab=readme-ov-file
+# Tests: shape (A) ⊥ full image or position information (B) | partial images (C)
+
+_target_: data.dsprites.DspritesCITGen
+data_path: "data/dsprites/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz"  # Path to npz files
+noise_std: 0.0
+b_type: "bbox" # 'image' for 64x64 image, 'bbox' for bounding box coords

@@ -1,0 +1,7 @@
+_target_: "data.sincorrelation.SinCITGen"
+samples: 100
+type: "type2"
+data_seed: 0
+ca_dim_idx: 0
+cb_dim_idx: 0
+cr_dim_idx: 0

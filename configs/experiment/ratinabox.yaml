@@ -1,0 +1,65 @@
+# @package _global_
+# RatInABox Experiment Configuration
+# Tests conditional independence: head_direction_cells ⊥ head+grid_cells | position+head_dir
+
+defaults:
+  - /data: ratinabox
+  - /kernel@model_a: linear
+  - /kernel@model_b: linear
+  - /kernel@model_c: rbf
+  - /kernel@model_ca: rbf
+  - /kernel@model_cb: rbf
+
+wandb:
+  disabled: false
+  group: "${train.model_x_mode}_${wandb.task}_d${data.dim}_${data.n_cells}_Vt_${train.Vt_type}_bs${data.samples}_T${train.T}"
+  task: "ratinabox"
+  tags: []
+
+model_a:
+  input_dim: ${data.dim}  # head direction cells
+  is_trainable: false
+
+model_b:
+  input_dim: ${data.dim}  # head+grid cells
+  is_trainable: false
+
+model_c:
+  input_dim: 4  # position (x,y) + head direction
+  is_trainable: true
+
+model_ca:
+  input_dim: 4  # C -> A regression
+  is_trainable: true
+
+model_cb:
+  input_dim: 4  # C -> B regression
+  is_trainable: true
+
+data:
+  data_seed: ${train.seed}
+  samples: 100
+  type: "type1"  # type1=H0, type2=H1
+  dim: ${data.n_cells}
+  n_cells: 100
+  noise_std: 0.1
+
+train:
+  name: "kci"
+  seed: 1
+  lr: 0.01
+  earlystopping:
+    patience: 30
+    delta: 0.0
+  pretrain_samples: 3000
+  model_x_mode: "online"
+  epochs: 400
+  seqs: 30
+  T: 5
+  alpha: 0.05
+  eps: 1e-6
+  batch_size: ${data.samples}
+  l1_lambda: 0.0
+  l2_lambda: 0.0
+  save: false
+  save_dir: ""

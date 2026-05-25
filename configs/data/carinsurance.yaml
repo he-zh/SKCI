@@ -1,0 +1,12 @@
+# Car Insurance data configuration
+# Data from: https://github.com/felipemaiapolo/cit/tree/main
+# Tests: premium (Y) ⊥ minority (X) | state_risk (Z)
+
+_target_: data.carinsurance.CarInsuranceCITGen
+data_path: "data/car_insurance"  # Path to CSV files
+state: "ca"  # State: ca, il, mo, tx
+n_vals: 20   # Number of bins for discretizing state_risk
+company: null  # Optional: filter by company name (use this OR company_idx)
+company_idx: null  # Optional: 1-based company index (1, 2, 3, ...)
+# To get number of companies: python -c "from data import get_num_companies; print(get_num_companies('data/car_insurance', 'ca'))"
+# Example: data.company_idx=1 uses the first company alphabetically

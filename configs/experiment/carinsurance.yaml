@@ -1,0 +1,80 @@
+# @package _global_
+# Car Insurance Experiment Configuration
+# Tests conditional independence: premium ⊥ minority | state_risk
+#
+# Hierarchical experiment structure:
+# - For each state (ca, il, mo, tx)
+#   - For each company in that state
+#     - Run multiple independent CI tests
+#     - Record rejection (wealth > 1/alpha)
+#   - Calculate average rejection rate across companies
+#
+# Use with Hydra multirun to sweep over states/companies:
+#   python train.py -m experiment=carinsurance data.state=ca,il,mo,tx
+#   python train.py -m experiment=carinsurance data.company="Allstate,Geico,..."
+
+defaults:
+  - /data: carinsurance
+  - /kernel@model_a: rbf
+  - /kernel@model_b: kronecker
+  - /kernel@model_c: rbf
+  - /kernel@model_ca: rbf
+  - /kernel@model_cb: rbf
+
+wandb:
+  disabled: false
+  group: "${wandb.task}_${data.state}_${data.n_vals}_Vt_${train.Vt_type}_bs${data.samples}_T${train.T}"
+  task: "carinsurance"
+  tags: []
+
+model_a:
+  input_dim: 1  # premium
+  is_trainable: false
+  gamma_init_method: 'variance'
+
+model_b:
+  input_dim: 1  # minority (binary)
+  is_trainable: false
+
+model_c:
+  input_dim: 1  # state_risk
+  gamma: 2000.0
+  is_trainable: true
+
+model_ca:
+  input_dim: 1  # state_risk -> premium
+  gamma: 2000.0
+  is_trainable: true
+
+model_cb:
+  input_dim: 1  # state_risk -> minority
+  gamma: 2000.0
+  is_trainable: true
+
+data:
+  data_seed: ${train.seed}
+  samples: 20
+  type: "type1"  # type1=H0 (simulated independence), type2=H1 (real data)
+  state: "ca" # ca, il, mo, tx
+  company_idx: 0  # 0-based index; ca:[0-20], il:[0-33], mo:[0-24], tx:[0-17]
+  n_vals: 20
+
+train:
+  name: "kci"
+  seed: 1
+  lr: 0.01
+  earlystopping:
+    patience: 10
+    delta: 0.0
+  pretrain_samples: 500
+  model_x_mode: "online"
+  epochs: 400
+  seqs: 80
+  T: 5
+  alpha: 0.05
+  eps: 1e-6
+  batch_size: ${data.samples}
+  l1_lambda: 0.0
+  l2_lambda: 0.0
+  save: false
+  save_dir: ""

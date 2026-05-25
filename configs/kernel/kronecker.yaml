@@ -1,0 +1,5 @@
+_target_: "models.kernels.KroneckerModel"
+kernel_type: "kronecker"
+input_dim: 1
+ridge_lambda: 1e-4
+is_trainable: false

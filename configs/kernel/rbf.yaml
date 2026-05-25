@@ -1,0 +1,10 @@
+_target_: "models.kernels.RBFModel"
+kernel_type: "rbf"
+input_dim: 1
+hidden_dim: 1
+ridge_lambda: 1e-4
+gamma: 1.0
+is_trainable: false
+# gamma_init_method: how to initialize bandwidth from data
+# null = use gamma value above, 'variance' = per-dim variance, 'median' = per-dim median heuristic
+gamma_init_method: 'variance'

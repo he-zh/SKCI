@@ -1,0 +1,13 @@
+_target_: "models.kernels.CNNModel"
+kernel_type: "rbf"
+input_channels: 1
+input_dim: 28
+hidden_channels: [32, 64]
+fc_hidden_size: [128]
+output_dim: 8
+layer_norm: false
+dropout: 0.3
+ridge_lambda: 1e-4
+gamma: 1.0
+is_trainable: false
+gamma_init_method: null
