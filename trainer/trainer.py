@@ -211,9 +211,6 @@ class Trainer:
         self.autoencoder.eval()
         logging.info(f"Autoencoder training complete. Final val_loss: {best_val_loss:.6f}")
         
-        # Fit dimensionality reducer if enabled (LDA or PCA)
-        if self.use_reducer:
-            self._fit_reducer(train_data)
 
     def generate_noiseless_data(self, seed, samples, type="ca"):
         """
@@ -372,7 +369,7 @@ class Trainer:
         logging.info(f"Seq: {self.current_seq}, Epoch: {self.current_epoch}, Kernel C {mode} loss: {loss.item():.4e}")
         return loss.item()
 
-    def get_gamma(self, train_data, val_data, bootstrap_samples=1000):
+    def get_gamma(self, train_data, val_data, mode="train"):
         """
         Estimate gamma using wild bootstrap
         for clamp_linear Vt_type based on training and validation data.
@@ -380,41 +377,52 @@ class Trainer:
         Args:
             train_data: Training dataset.
             val_data: Validation dataset.
-            bootstrap_samples (int): Number of bootstrap samples to use for estimation.
+            mode: "train" or "val" - determines how to use the data for estimation
 
         Returns:
             gamma (tensor float): Estimated gamma value.
         """
 
-        if val_data is None:
-            raise ValueError("Validation data must be provided to estimate gamma.")
+        if val_data is None and mode == "val":
+            raise ValueError("Validation data must be provided to estimate gamma in val mode.")
         with torch.no_grad():
-            # combine datasets
-            train_val_data = CombinedDataset([train_data, val_data])
-            train_nums = len(train_data)
-            val_nums = len(val_data)
+            if mode == "train":
+                train_nums = len(train_data)
+                # For training, use training data with a wild bootstrap approach to estimate variance
+                K_aa_centered, K_bb_centered, K_cc = self.get_Ckci_kernel_matrix(train_data)
+                K_prod = (K_aa_centered * K_bb_centered * K_cc).detach()
+                ckci2 = K_prod.mean()  # V statistics estimator of E[K_prod]
 
-            train_idx = torch.arange(train_nums)
-            val_idx = torch.arange(len(train_val_data))[-val_nums:]
+                K_mean_vector = K_prod.mean(dim=0) 
 
-            # kernel matrices
-            K_aa_centered, K_bb_centered, K_cc = self.get_Ckci_kernel_matrix(train_val_data)
+                variance = (1 / self.bs) * torch.mean((K_mean_vector / (ckci2 + self.eps)) ** 2)
+                
+            elif mode == "val":
+                # combine datasets
+                train_val_data = CombinedDataset([train_data, val_data])
+                train_nums = len(train_data)
+                val_nums = len(val_data)
 
-            # product kernel
-            K_prod = (K_aa_centered * K_bb_centered * K_cc).detach()
+                train_idx = torch.arange(train_nums)
+                val_idx = torch.arange(len(train_val_data))[-val_nums:]
 
-            # training statistic
-            K_prod_train = K_prod[train_idx][:, train_idx]
-            ckci2 = K_prod_train.mean()
+                # kernel matrices
+                K_aa_centered, K_bb_centered, K_cc = self.get_Ckci_kernel_matrix(train_val_data)
 
-            # cross (train–val) block
-            K_prod_cross = K_prod[train_idx][:, val_idx]
+                # product kernel
+                K_prod = (K_aa_centered * K_bb_centered * K_cc).detach()
 
-            # original statistic (not strictly needed for gamma, but kept for clarity)
-            orig_stat = K_prod_cross.mean() / (ckci2+self.eps)
-            
-            K_mean_vector = K_prod_cross.mean(dim=0) 
-            variance = (1.0 / val_nums) * (1.0 / (ckci2 + self.eps) ** 2) * torch.mean(K_mean_vector ** 2)
+                # training statistic
+                K_prod_train = K_prod[train_idx][:, train_idx]
+                ckci2 = K_prod_train.mean()
+
+                # cross (train–val) block
+                K_prod_cross = K_prod[train_idx][:, val_idx]
+                
+                K_mean_vector = K_prod_cross.mean(dim=0) 
+                variance = (1.0 / val_nums) * torch.mean((K_mean_vector / (ckci2 + self.eps)) ** 2)
+            else:
+                raise ValueError("Mode must be either 'train' or 'val' for gamma estimation.")
             sigma = torch.sqrt(variance)
             sigma_val = float(sigma.item())
 
@@ -515,7 +523,7 @@ class Trainer:
                 self.optimizer_betting.step()
             if self.optimizer_c is not None:
                 self.optimizer_c.step()
-            self.get_gamma(train_data=train_data, val_data=val_data)
+            self.get_gamma(train_data=train_data, val_data=val_data, mode="train")
         else:
             # For evaluation, use val_data as the validation set
             # and compute V with train_data as training set
@@ -674,6 +682,7 @@ class Trainer:
                                         "gamma": self.gamma}
                         if self.early_stopper.early_stop(loss_val, model=betting_model) or (t + 1) == self.epochs:
                             self.early_stopper.restore_best(betting_model)
+                            self.get_gamma(train_data=train_data, val_data=val_data, mode='val')
                             loss_test, vt = self.train_evaluate_epoch(train_data=train_data, val_data=test_data, mode='test')
                             wealth_update = - loss_test
                             if wealth_update < 0:
@@ -681,7 +690,7 @@ class Trainer:
                             wealth *= wealth_update
                             break
                 else: 
-                    self.get_gamma(train_data=train_data, val_data=val_data)
+                    self.get_gamma(train_data=train_data, val_data=val_data, mode='val')
                     loss_val, _ = self.train_evaluate_epoch(train_data=train_data, val_data=val_data, mode='val')
                     loss_test, vt = self.train_evaluate_epoch(train_data=train_data, val_data=test_data, mode='test')
                     wealth_update = - loss_test
