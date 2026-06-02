@@ -34,7 +34,6 @@ class Trainer:
         # self.scale = cfg.scale
         self.gamma = torch.tensor([0.0], dtype=torch.float32, device=device)
         self.eps = torch.tensor([cfg.eps], dtype=torch.float32, device=device)
-        self.Vt_type = cfg.Vt_type
         self.T = cfg.T
         self.bs = cfg.batch_size
         self.pretrain_samples = cfg.get('pretrain_samples', 1000)
@@ -372,7 +371,6 @@ class Trainer:
     def get_gamma(self, train_data, val_data, mode="train"):
         """
         Estimate gamma using wild bootstrap
-        for clamp_linear Vt_type based on training and validation data.
 
         Args:
             train_data: Training dataset.

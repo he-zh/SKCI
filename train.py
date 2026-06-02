@@ -1,6 +1,9 @@
 import torch
 import hydra
 from trainer.trainer import Trainer
+from trainer.ecrt_trainer import ECRTTrainer
+from trainer.ec2st_trainer import EC2STTrainer
+from trainer.davt_trainer import DAVTTrainer
 from omegaconf import DictConfig, OmegaConf
 import wandb
 from hydra.utils import instantiate
@@ -10,18 +13,49 @@ OmegaConf.register_new_resolver(
     lambda sep, xs: sep.join(str(x) for x in xs)
 )
 
+
+BASELINE_TRAINERS = {
+    "ecrt": ECRTTrainer,
+    "ec2st": EC2STTrainer,
+    "davt": DAVTTrainer,
+}
+
+
+def resolve_trainer_class(train_name):
+    if train_name in BASELINE_TRAINERS:
+        return BASELINE_TRAINERS[train_name]
+    if train_name in {"skci", "trainer"}:
+        return Trainer
+    raise ValueError(
+        f"Unsupported train.name '{train_name}'. "
+        f"Expected one of: {', '.join(sorted([*BASELINE_TRAINERS, 'skci', 'trainer']))}."
+    )
+
+
+def build_trainer(cfg: DictConfig, datagen, device):
+    trainer_class = resolve_trainer_class(cfg.train.name)
+    if trainer_class is Trainer:
+        kernel_a = instantiate(cfg.model_a).to(device)
+        kernel_b = instantiate(cfg.model_b).to(device)
+        kernel_c = instantiate(cfg.model_c).to(device)
+        kernel_ca = instantiate(cfg.model_ca).to(device)
+        kernel_cb = instantiate(cfg.model_cb).to(device)
+        return trainer_class(cfg.train, kernel_a, kernel_b, kernel_c, kernel_ca, kernel_cb, datagen, device)
+    return trainer_class(cfg.train, datagen, device)
+
+
 @hydra.main(config_path='configs', config_name='config.yaml')
 def train_pipeline(cfg: DictConfig):
     print(cfg)
 
     if not cfg.wandb.disabled:
         wandb.init(
-            entity="",
+            entity=cfg.wandb.entity,
             project='skci',
             group=cfg.wandb.group,
             name=f"{cfg.data.type}_dseed-{cfg.data.data_seed}_tseed-{cfg.train.seed}",
             tags=cfg.wandb.tags + [cfg.model_a.kernel_type, cfg.data.type, 
-                                   cfg.wandb.task, cfg.train.Vt_type], # tags: kernel type: [rbf, linear], dataset type ['type1, type2'], purpose: [debug, exp]
+                                   cfg.wandb.task], # tags: kernel type: [rbf, linear], dataset type ['type1, type2'], purpose: [debug, exp]
             config=OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
         )
     else:
@@ -32,16 +66,8 @@ def train_pipeline(cfg: DictConfig):
     # initialize device
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # initialize network
-    kernel_a = instantiate(cfg.model_a).to(device)
-    kernel_b = instantiate(cfg.model_b).to(device)
-    kernel_c = instantiate(cfg.model_c).to(device)
-    kernel_ca = instantiate(cfg.model_ca).to(device)
-    kernel_cb = instantiate(cfg.model_cb).to(device)
-
-
     # initialize the trainer object and fit the network to the task
-    trainer = Trainer(cfg.train, kernel_a, kernel_b, kernel_c, kernel_ca, kernel_cb, datagen, device)
+    trainer = build_trainer(cfg, datagen, device)
     trainer.train()
     wandb.finish()
 

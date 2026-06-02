@@ -11,7 +11,7 @@ defaults:
 
 wandb:
   disabled: false
-  group: "${train.model_x_mode}_${wandb.task}_d${data.d}_coord${data.ca_dim_idx}${data.cb_dim_idx}${data.cr_dim_idx}_Vt_${train.Vt_type}_rbf_bs${data.samples}_T${train.T}_betting${train.betting_fraction_trainable}_kc${model_c.is_trainable}"
+  group: "${train.model_x_mode}_${wandb.task}_d${data.d}_coord${data.ca_dim_idx}${data.cb_dim_idx}${data.cr_dim_idx}_rbf_bs${data.samples}_T${train.T}_betting${train.betting_fraction_trainable}_kc${model_c.is_trainable}"
   task: "sin"
   tags: []
 
@@ -50,7 +50,7 @@ data:
   cr_dim_idx: 0
 
 train:
-  name: "kci"
+  name: "skci"
   seed: 1
   lr: 0.01
   earlystopping:
@@ -69,5 +69,3 @@ train:
   batch_size: ${data.samples}
   l1_lambda: 0.0
   l2_lambda: 0.0
-  save: false
-  save_dir: ""
