@@ -8,3 +8,5 @@ multirun/
 wandb/
 wandb_config/
 notebooks/
+tests/
+docs/

@@ -54,7 +54,7 @@ def train_pipeline(cfg: DictConfig):
             project='skci',
             group=cfg.wandb.group,
             name=f"{cfg.data.type}_dseed-{cfg.data.data_seed}_tseed-{cfg.train.seed}",
-            tags=cfg.wandb.tags + [cfg.model_a.kernel_type, cfg.data.type, 
+            tags=cfg.wandb.tags + [cfg.data.type, 
                                    cfg.wandb.task], # tags: kernel type: [rbf, linear], dataset type ['type1, type2'], purpose: [debug, exp]
             config=OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
         )

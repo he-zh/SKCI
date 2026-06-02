@@ -69,8 +69,8 @@ class ECRTTrainer:
 
         # ECRT specific parameters
         self.K = cfg.get('K', 5)  # Number of tilde_a samples per test point
-        self.ecrt_model_lr = cfg.get('ecrt_model_lr', cfg.ecrt_model_lr)
-        self.ecrt_model_weight_decay = cfg.get('ecrt_model_weight_decay', cfg.ecrt_model_weight_decay)
+        self.ecrt_model_lr = cfg.get('ecrt_model_lr', 0.01)
+        self.ecrt_model_weight_decay = cfg.get('ecrt_model_weight_decay', 1e-4)
         self.dropout = cfg.get('dropout', 0.1)
         self.layer_norm = cfg.get('layer_norm', True)
         # ECRT model type: 'mlp' for low-dim output, 'image_regressor' for high-dim image output

@@ -17,7 +17,7 @@ Across synthetic benchmarks and real-data fairness tasks, the method is designed
 
 ## Repository Structure
 
-- `train.py`: main training and experiment entry point.
+- `train.py`: single training and experiment entry point for SKCI, ECRT, EC2ST, and DAVT experiments.
 - `configs/experiment/`: experiment presets.
 - `configs/data/`: dataset configuration files.
 - `configs/kernel/`: kernel and feature model configuration files.
@@ -60,6 +60,8 @@ Experiments are configured with Hydra. The main entry point is:
 ```bash
 python train.py +experiment=<name>
 ```
+
+The selected trainer is driven by `train.name` inside each experiment config, so all methods now run through `train.py`.
 
 ### Synthetic Benchmarks
 
