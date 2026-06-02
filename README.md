@@ -42,6 +42,8 @@ The repository was developed with a pinned environment in `requirements.txt`, bu
 
 If you want to reproduce the original environment more closely, install directly from `requirements.txt`.
 
+The original experiments were run on SLURM, using `1` `NVIDIA L40S 48GB` GPU and `8` `Intel Xeon Gold` CPU cores per run.
+
 ## Installation
 
 Create a virtual environment and install dependencies:
@@ -62,6 +64,24 @@ python train.py +experiment=<name>
 ```
 
 The selected trainer is driven by `train.name` inside each experiment config, so all methods now run through `train.py`.
+
+### Methods and Baselines
+
+The repository currently supports the following methods through `train.py`:
+
+- `skci`: the main Sequential Kernel-based Conditional Independence Testing method in this repository.
+- `ecrt`: the ECRT baseline.
+- `ec2st`: the EC2ST baseline.
+- `davt`: the DAVT baseline.
+
+Method selection is usually baked into each experiment preset via `train.name`, but you can also override it directly when compatible with the rest of the config:
+
+```bash
+python train.py +experiment=gaussian
+python train.py +experiment=gaussian_ecrt
+python train.py +experiment=gaussian_ec2st
+python train.py +experiment=gaussian_davt
+```
 
 ### Synthetic Benchmarks
 
@@ -145,7 +165,15 @@ Some of the most useful Hydra overrides are:
 For example:
 
 ```bash
-python train.py +experiment=gaussian wandb.disabled=true train.model_x_mode=online
+python train.py +experiment=gaussian train.model_x_mode=online
+```
+
+To run 100 seeds as 100 separate jobs, in an outer shell loop:
+
+```bash
+for seed in $(seq 0 99); do
+  python train.py +experiment=gaussian train.seed=$seed
+done
 ```
 
 By default, experiment presets enable Weights & Biases logging. If you do not want external logging, disable it explicitly:
