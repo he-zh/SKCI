@@ -70,9 +70,9 @@ The selected trainer is driven by `train.name` inside each experiment config, so
 The repository currently supports the following methods through `train.py`:
 
 - `skci`: the main Sequential Kernel-based Conditional Independence Testing method in this repository.
-- `ecrt`: the ECRT baseline.
-- `ec2st`: the EC2ST baseline.
-- `davt`: the DAVT baseline.
+- `ecrt`: the ECRT baseline (adopted from [shaersh/ecrt](https://github.com/shaersh/ecrt)).
+- `ec2st`: the EC2ST baseline (adopted from [tpandeva/e-c2st](https://github.com/tpandeva/e-c2st)).
+- `davt`: the DAVT baseline (adopted from [tpandeva/deep-anytime-testing](https://github.com/tpandeva/deep-anytime-testing)).
 
 Method selection is usually baked into each experiment preset via `train.name`, but you can also override it directly when compatible with the rest of the config:
 
