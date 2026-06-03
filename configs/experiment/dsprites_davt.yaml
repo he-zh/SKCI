@@ -4,6 +4,7 @@
 
 defaults:
   - /data: dsprites
+  - /train_shared/baseline_common: dsprites
 
 
 wandb:
@@ -29,31 +30,12 @@ train:
 
   # DAVT mode parameters
   model_x_mode: "oracle"  # 'online', 'pretrained', or 'oracle'
-  noise_std: 1.0          # Std for Gaussian noise when sampling tilde_a
-  pretrain_samples: 3000  # Number of samples for pretraining (if not online)
-
-  # Model architecture
-  dropout: 0.1
-  layer_norm: true
-
-  # Model A hyperparameters (for estimating P(A|C))
-  model_a_type: "mean_estimator"  # "mean_estimator" or "gmmn"
-  model_a_feature_extractor_type: "cnn"  # 'mlp' or 'cnn' (only for mean_estimator)
-  model_a_input_channels: 1  # Channels for input c (grayscale)
-  model_a_hidden_channels: [32, 64, 128]  # CNN channels for c encoder
-  model_a_hidden_fc_dims: [32]
-  model_a_output_size: 1
-  model_a_lr: 0.01
-  model_a_weight_decay: 1e-4
-  model_a_layer_norm: false
-  model_a_dropout: 0.3
 
   # DAVT model parameters
   davt_model_type: "cnn"  # 'mmdemlp' for vector data, 'cnn' for image data
-  davt_model_fc_hidden_size: [64, 32]  # Final FC layers after image encoders
   davt_model_lr: 0.001
   davt_model_weight_decay: 1e-4
-  davt_dropout: 0.
+  davt_model_dropout: 0.
 
   # MMDECNN specific parameters (for image data with mixed inputs)
   # b is 28x28 image, c is 64x64 image
@@ -63,10 +45,4 @@ train:
   davt_c_hidden_channels: [32, 64, 128, 256]  # CNN channels for c encoder (64x64)
   davt_b_latent_dim: 64  # Latent dim for b encoder output
   davt_c_latent_dim: 64  # Latent dim for c encoder output
-
-  # Training parameters
-  epochs: 500
-  batch_size: ${data.samples}
-  earlystopping:
-    patience: 30
-    delta: 0.0
+  davt_model_fc_hidden_dims: [128]  # Final FC layers after image encoders

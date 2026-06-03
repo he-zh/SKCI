@@ -1,0 +1,16 @@
+# @package _global_
+
+train:
+  noise_std: 1.0
+  pretrain_samples: 3000
+
+  model_a_type: "mean_estimator"
+  model_a_hidden_fc_dims: [32]
+  model_a_lr: 0.01
+  model_a_weight_decay: 0.0
+
+  epochs: 500
+  batch_size: ${data.samples}
+  earlystopping:
+    patience: 30
+    delta: 0.0

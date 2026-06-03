@@ -4,6 +4,7 @@
 
 defaults:
   - /data: dsprites
+  - /train_shared/baseline_common: dsprites
 
 
 wandb:
@@ -29,27 +30,8 @@ train:
 
   # e-CRT specific parameters
   K: 5                  # Number of tilde_a samples per test point
-  model_x_mode: "oracle"  # 'online', 'pretrained', or 'oracle'
-  noise_std: 1.0          # Std for Gaussian noise when sampling tilde_a
-  pretrain_samples: 3000  # Number of samples for pretraining (if not online)
+  model_x_mode: "online"  # 'online', 'pretrained', or 'oracle'
 
-  # Model architecture
-  dropout: 0.1
-  layer_norm: true
-
-  # Separate hyperparameters for each model (override with tuned values)
-  model_a_type: "mean_estimator"  # "mean_estimator" or "gmmn"
-  model_a_feature_extractor_type: "cnn"  # 'mlp' or 'cnn' (only for mean_estimator)
-  model_a_input_channels: 1  # Only for CNN feature extractor
-  model_a_hidden_channel_dims: [32, 64, 128]  # Only for CNN feature extractor
-  model_a_hidden_fc_dims: [32] 
-  model_a_output_size: 1
-  model_a_lr: 0.01 
-  model_a_weight_decay: 1e-4  
-  model_a_layer_norm: false
-  model_a_dropout: 0.3
-
-  c_input_type: "image"  # 'image' or 'vector'
   c_channels: 1  # channels for image input c
   b_channels: 1  # channels for image output b
   ecrt_model_type: "image_regressor"  # 'mlp' for low-dim output, 'image_regressor' for high-dim image output
@@ -57,12 +39,5 @@ train:
   ecrt_model_encoder_fc_hidden_size: [32]
   ecrt_model_latent_dim: 32
   ecrt_model_decoder_hidden_channels: [64, 32]
-  ecrt_model_lr: 0.01  # Override with tuned value
-  ecrt_model_weight_decay: 1e-4  # Override with tuned value
-
-  # Training parameters
-  epochs: 500
-  batch_size: ${data.samples}
-  earlystopping:
-    patience: 30
-    delta: 0.0
+  ecrt_model_lr: 0.01  
+  ecrt_model_weight_decay: 1e-4  

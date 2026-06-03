@@ -30,10 +30,12 @@ class DAVTTrainer(ECRTTrainer):
         super().__init__(cfg, datagen, device)
 
         # DAVT specific parameters
-        self.davt_model_type = cfg.get('davt_model_type', 'mmdemlp') 
-        self.davt_model_fc_hidden_size = cfg.get('davt_model_fc_hidden_size', [128])
+        self.davt_model_type = cfg.get('davt_model_type', 'mmdemlp')
         self.davt_model_lr = cfg.get('davt_model_lr', 0.01)
         self.davt_model_weight_decay = cfg.get('davt_model_weight_decay', 1e-4)
+
+        # MMDEMLP specific parameters (for low-dimensional data)
+        self.davt_model_hidden_dims = cfg.get('davt_model_hidden_dims', [128])
 
         # MMDECNN specific parameters (for image data with mixed inputs)
         self.davt_b_channels = cfg.get('davt_b_channels', 1)  # Channels for image b
@@ -42,9 +44,10 @@ class DAVTTrainer(ECRTTrainer):
         self.davt_c_hidden_channels = cfg.get('davt_c_hidden_channels', [32, 64, 128])  # CNN channels for c encoder
         self.davt_b_latent_dim = cfg.get('davt_b_latent_dim', 64)  # Latent dim for b encoder
         self.davt_c_latent_dim = cfg.get('davt_c_latent_dim', 128)  # Latent dim for c encoder
+        self.davt_model_fc_hidden_dims = cfg.get('davt_model_fc_hidden_dims', [128])
 
-        # Get dropout rate from config
-        self.davt_dropout = cfg.get('davt_dropout', 0.1)
+        self.davt_model_dropout = cfg.get('davt_model_dropout', 0.1)
+        self.davt_model_layer_norm = cfg.get('davt_model_layer_norm', True)
 
         # Models (will be initialized when data is loaded)
         self.davt_model = None
@@ -79,11 +82,11 @@ class DAVTTrainer(ECRTTrainer):
         if self.davt_model_type == 'mmdemlp':
             self.davt_model = MMDEMLP(
                 input_size=abc_dim,
-                hidden_layer_size=self.davt_model_fc_hidden_size,
+                hidden_layer_size=self.davt_model_hidden_dims,
                 output_size=1,
-                layer_norm=self.layer_norm,
-                drop_out=self.davt_dropout > 0,
-                drop_out_p=self.davt_dropout,
+                layer_norm=self.davt_model_layer_norm,
+                drop_out=self.davt_model_dropout > 0,
+                drop_out_p=self.davt_model_dropout,
                 flatten=True
             ).to(self.device)
         elif self.davt_model_type == 'cnn':
@@ -97,11 +100,11 @@ class DAVTTrainer(ECRTTrainer):
                 c_hidden_channels=self.davt_c_hidden_channels,
                 b_latent_dim=self.davt_b_latent_dim,
                 c_latent_dim=self.davt_c_latent_dim,
-                fc_hidden_size=self.davt_model_fc_hidden_size,
+                fc_hidden_size=self.davt_model_fc_hidden_dims,
                 output_size=1,
-                layer_norm=self.layer_norm,
-                drop_out=self.davt_dropout > 0,
-                drop_out_p=self.davt_dropout
+                layer_norm=self.davt_model_layer_norm,
+                drop_out=self.davt_model_dropout > 0,
+                drop_out_p=self.davt_model_dropout
             ).to(self.device)
 
         # Initialize optimizers
@@ -330,5 +333,3 @@ class DAVTTrainer(ECRTTrainer):
             self.log({'all_sample_nums': len(train_data) + len(test_data)})
 
         logging.info(f"Training complete. Final wealth: {aggregated_davt}")
-
-

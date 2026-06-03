@@ -4,6 +4,7 @@
 
 defaults:
   - /data: carinsurance
+  - /train_shared/baseline_common: carinsurance
 
 wandb:
   disabled: false
@@ -27,27 +28,7 @@ train:
   alpha: 0.05
 
   model_x_mode: "online"  # 'online', 'pretrained', or 'oracle'
-  noise_std: 1.0         # Std for Gaussian noise when sampling tilde_a
-  pretrain_samples: 3000  # Number of samples for pretraining (if not online)
-
-  # Model architecture
-  dropout: 0.1
-  layer_norm: true
-
-  # Separate hyperparameters for each model (override with tuned values)
-  model_a_type: "mean_estimator"  # "mean_estimator" or "gmmn"
-  model_a_hidden_dims: [128, 64]
-  model_a_lr: 0.01  # Override with tuned value
-  model_a_weight_decay: 0.0  # Override with tuned value
 
   davt_model_hidden_dims: [128]
-  davt_model_lr: 0.0005  # Override with tuned value
-  davt_model_weight_decay: 1e-5  # Override with tuned value
-  davt_dropout: 0.1
-
-  # Training parameters
-  epochs: 500
-  batch_size: ${data.samples}
-  earlystopping:
-    patience: 30
-    delta: 0.0
+  davt_model_lr: 0.0005  
+  davt_model_weight_decay: 1e-5  

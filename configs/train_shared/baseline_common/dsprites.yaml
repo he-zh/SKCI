@@ -1,0 +1,20 @@
+# @package _global_
+
+train:
+
+  model_a_type: "mean_estimator"
+  model_a_feature_extractor_type: "cnn"
+  model_a_input_channels: 1
+  model_a_hidden_channels: [32, 64]
+  model_a_hidden_fc_dims: [32]
+  model_a_output_size: 1
+  model_a_lr: 0.001
+  model_a_weight_decay: 0.0
+  model_a_layer_norm: false
+  model_a_dropout: 0.1
+
+  epochs: 500
+  batch_size: ${data.samples}
+  earlystopping:
+    patience: 30
+    delta: 0.0

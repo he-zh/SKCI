@@ -30,10 +30,12 @@ class EC2STTrainer(ECRTTrainer):
         super().__init__(cfg, datagen, device)
 
         # EC2ST specific parameters
-        self.ec2st_model_type = cfg.get('ec2st_model_type', 'mmdemlp') 
-        self.ec2st_model_fc_hidden_size = cfg.get('ec2st_model_fc_hidden_size', [128])
+        self.ec2st_model_type = cfg.get('ec2st_model_type', 'mmdemlp')
         self.ec2st_model_lr = cfg.get('ec2st_model_lr', 0.01)
         self.ec2st_model_weight_decay = cfg.get('ec2st_model_weight_decay', 1e-4)
+
+        # MMDEMLP specific parameters
+        self.ec2st_model_hidden_dims = cfg.get('ec2st_model_hidden_dims', [128])
 
         # MMDECNN specific parameters (for image data with mixed inputs)
         self.ec2st_b_channels = cfg.get('ec2st_b_channels', 1)  # Channels for image b
@@ -42,9 +44,10 @@ class EC2STTrainer(ECRTTrainer):
         self.ec2st_c_hidden_channels = cfg.get('ec2st_c_hidden_channels', [32, 64, 128])  # CNN channels for c encoder
         self.ec2st_b_latent_dim = cfg.get('ec2st_b_latent_dim', 64)  # Latent dim for b encoder
         self.ec2st_c_latent_dim = cfg.get('ec2st_c_latent_dim', 128)  # Latent dim for c encoder
+        self.ec2st_model_fc_hidden_dims = cfg.get('ec2st_model_fc_hidden_dims', [128])
 
-        # Get dropout rate from config
-        self.ec2st_dropout = cfg.get('ec2st_dropout', 0.1)
+        self.ec2st_model_dropout = cfg.get('ec2st_model_dropout', 0.1)
+        self.ec2st_model_layer_norm = cfg.get('ec2st_model_layer_norm', True)
 
         # Models (will be initialized when data is loaded)
         self.ec2st_model = None
@@ -79,11 +82,11 @@ class EC2STTrainer(ECRTTrainer):
         if self.ec2st_model_type == 'mmdemlp':
             self.ec2st_model = MMDEMLP(
                 input_size=abc_dim,
-                hidden_layer_size=self.ec2st_model_fc_hidden_size,
+                hidden_layer_size=self.ec2st_model_hidden_dims,
                 output_size=1,
-                layer_norm=self.layer_norm,
-                drop_out=self.ec2st_dropout > 0,
-                drop_out_p=self.ec2st_dropout,
+                layer_norm=self.ec2st_model_layer_norm,
+                drop_out=self.ec2st_model_dropout > 0,
+                drop_out_p=self.ec2st_model_dropout,
                 flatten=True,
                 return_logits=True
             ).to(self.device)
@@ -98,11 +101,11 @@ class EC2STTrainer(ECRTTrainer):
                 c_hidden_channels=self.ec2st_c_hidden_channels,
                 b_latent_dim=self.ec2st_b_latent_dim,
                 c_latent_dim=self.ec2st_c_latent_dim,
-                fc_hidden_size=self.ec2st_model_fc_hidden_size,
+                fc_hidden_size=self.ec2st_model_fc_hidden_dims,
                 output_size=1,
-                layer_norm=self.layer_norm,
-                drop_out=self.ec2st_dropout > 0,
-                drop_out_p=self.ec2st_dropout,
+                layer_norm=self.ec2st_model_layer_norm,
+                drop_out=self.ec2st_model_dropout > 0,
+                drop_out_p=self.ec2st_model_dropout,
                 return_logits=True
             ).to(self.device)
 
@@ -362,5 +365,3 @@ class EC2STTrainer(ECRTTrainer):
             self.log({'all_sample_nums': len(train_data) + len(test_data)})
 
         logging.info(f"Training complete. Final wealth: {aggregated_ec2st}")
-
-

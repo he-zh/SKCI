@@ -71,8 +71,8 @@ class ECRTTrainer:
         self.K = cfg.get('K', 5)  # Number of tilde_a samples per test point
         self.ecrt_model_lr = cfg.get('ecrt_model_lr', 0.01)
         self.ecrt_model_weight_decay = cfg.get('ecrt_model_weight_decay', 1e-4)
-        self.dropout = cfg.get('dropout', 0.1)
-        self.layer_norm = cfg.get('layer_norm', True)
+        self.ecrt_model_dropout = cfg.get('ecrt_model_dropout', 0.1)
+        self.ecrt_model_layer_norm = cfg.get('ecrt_model_layer_norm', True)
         # ECRT model type: 'mlp' for low-dim output, 'image_regressor' for high-dim image output
         self.ecrt_model_type = cfg.get('ecrt_model_type', 'mlp')
 
@@ -80,7 +80,7 @@ class ECRTTrainer:
         self.ecrt_model_hidden_dims = cfg.get('ecrt_model_hidden_dims', [64, 32])  # Only for MLP ecrt_model
 
         # ImageRegressor specific parameters (for high-dimensional image outputs)
-        self.c_input_type = cfg.get('c_input_type', 'vector')  # 'image' or 'vector'
+        self.c_input_type = cfg.get('c_input_type', 'image')  # 'image' or 'vector'
         self.c_channels = cfg.get('c_channels', 1)  # channels for image input c
         self.b_channels = cfg.get('b_channels', 1)  # channels for image output b
         self.ecrt_model_encoder_hidden_channels = cfg.get('ecrt_model_encoder_hidden_channels', [32, 64, 128])
@@ -185,9 +185,9 @@ class ECRTTrainer:
                 encoder_fc_hidden_size=self.ecrt_model_encoder_fc_hidden_size,
                 latent_dim=self.ecrt_model_latent_dim,
                 decoder_hidden_channels=self.ecrt_model_decoder_hidden_channels,
-                layer_norm=self.layer_norm,
-                drop_out=self.dropout > 0,
-                drop_out_p=self.dropout
+                layer_norm=self.ecrt_model_layer_norm,
+                drop_out=self.ecrt_model_dropout > 0,
+                drop_out_p=self.ecrt_model_dropout
             ).to(self.device)
             logging.info(f"Initialized ImageRegressor: a_dim={a_dim}, c_dim={c_dim}, b_dim={b_dim}")
         else:
@@ -196,9 +196,9 @@ class ECRTTrainer:
                 input_size=a_dim + c_dim,
                 hidden_layer_size=self.ecrt_model_hidden_dims,
                 output_size=b_dim,
-                layer_norm=self.layer_norm,
-                drop_out=self.dropout > 0,
-                drop_out_p=self.dropout
+                layer_norm=self.ecrt_model_layer_norm,
+                drop_out=self.ecrt_model_dropout > 0,
+                drop_out_p=self.ecrt_model_dropout
             ).to(self.device)
 
         # Initialize optimizers with separate hyperparameters
