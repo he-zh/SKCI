@@ -1,5 +1,5 @@
 _target_: "data.sincorrelation.SinCITGen"
-samples: 100
+samples: 20
 type: "type2"
 data_seed: 0
 ca_dim_idx: 0

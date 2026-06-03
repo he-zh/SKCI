@@ -38,7 +38,7 @@ model_cb:
 
 data:
   data_seed: ${train.seed}
-  samples: 100
+  samples: 20
   type: "type1"  # type1=H0, type2=H1
   dim: ${data.n_cells}
   n_cells: 100
@@ -55,7 +55,7 @@ train:
   model_x_mode: "online"
   epochs: 400
   seqs: 30
-  T: 5
+  T: 100
   alpha: 0.05
   eps: 1e-6
   batch_size: ${data.samples}
