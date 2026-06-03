@@ -68,8 +68,8 @@ train:
     delta: 0.0
   model_x_mode: "online"
   epochs: 400
-  seqs: 80
-  T: 5
+  seqs: 100
+  T: 0
   alpha: 0.05
   eps: 1e-6
   batch_size: ${data.samples}

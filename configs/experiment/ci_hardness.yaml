@@ -60,7 +60,7 @@ train:
   # model_x_mode: 'online' (learn on streaming data), 'pretrained' (pretrain with noisy samples), 'oracle' (pretrain with conditional means)
   model_x_mode: "online"
   epochs: 400
-  seqs: 50 # number of batches in the sequence
+  seqs: 100 # number of batches in the sequence
   T: 0 #Warm start number of batches used for the training only
   alpha: 0.05 # significance level
   eps: 1e-6

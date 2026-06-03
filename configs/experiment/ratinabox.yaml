@@ -54,8 +54,8 @@ train:
   pretrain_samples: 3000
   model_x_mode: "online"
   epochs: 400
-  seqs: 30
-  T: 100
+  seqs: 100
+  T: 0
   alpha: 0.05
   eps: 1e-6
   batch_size: ${data.samples}
