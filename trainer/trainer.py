@@ -389,11 +389,13 @@ class Trainer:
                 # For training, use training data with a wild bootstrap approach to estimate variance
                 K_aa_centered, K_bb_centered, K_cc = self.get_Ckci_kernel_matrix(train_data)
                 K_prod = (K_aa_centered * K_bb_centered * K_cc).detach()
+                
                 ckci2 = K_prod.mean()  # V statistics estimator of E[K_prod]
-
-                K_mean_vector = K_prod.mean(dim=0) 
-
-                variance = (1 / self.bs) * torch.mean((K_mean_vector / (ckci2 + self.eps)) ** 2)
+                _K_prod = K_prod.clone()
+                # unbiased estimator of variance
+                _K_prod.fill_diagonal_(0)
+                K_sum_vector = _K_prod.sum(dim=0) 
+                variance = (1 / self.bs) * (1 / (train_nums * (train_nums - 1) ** 2)) * torch.sum((K_sum_vector / (ckci2 + self.eps)) ** 2)
                 
             elif mode == "val":
                 # combine datasets
@@ -425,7 +427,7 @@ class Trainer:
             sigma_val = float(sigma.item())
 
             max_gamma = max(2.0, 8.0 * sigma_val + 1.0)
-            grid = torch.linspace(0.0, max_gamma, 20000, device=K_mean_vector.device)
+            grid = torch.linspace(0.0, max_gamma, 20000, device=self.device)
             normal = torch.distributions.Normal(loc=0.0, scale=1.0)
             rhs = sigma * normal.cdf((grid - 1.0) / sigma)
             residual = torch.abs(grid - rhs)
@@ -521,7 +523,7 @@ class Trainer:
                 self.optimizer_betting.step()
             if self.optimizer_c is not None:
                 self.optimizer_c.step()
-            self.get_gamma(train_data=train_data, val_data=val_data, mode="train")
+            self.get_gamma(train_data=train_data, val_data=val_data, mode="val")
         else:
             # For evaluation, use val_data as the validation set
             # and compute V with train_data as training set
